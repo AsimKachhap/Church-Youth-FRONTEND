@@ -1,14 +1,27 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 const HomePage = () => {
   const { user, logout } = useAuth();
   const [date, setDate] = useState(new Date());
 
+  const navigate = useNavigate();
+
   useEffect(() => {
     const timer = setInterval(() => setDate(new Date()), 1000);
     return () => clearInterval(timer);
   }, []);
+
+  const handleLogout = async () => {
+    try {
+      console.log("I ran");
+      await logout();
+      navigate("/login");
+    } catch (error) {
+      console.error("Failed to logout:", error);
+    }
+  };
 
   return (
     <div className="flex flex-col h-screen">
@@ -28,7 +41,7 @@ const HomePage = () => {
           </span>
           <button
             className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded"
-            onClick={logout}
+            onClick={handleLogout}
           >
             Logout
           </button>
