@@ -450,8 +450,8 @@ const UserDetailsForm = () => {
                 </label>
                 <input
                   type="text"
-                  name="churchContribution"
-                  placeholder="Church Contributions"
+                  name="How You can Contribute to the Church?"
+                  placeholder="I can... Kuch bhi jo tm krna chahoge"
                   value={formData.churchContribution}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
