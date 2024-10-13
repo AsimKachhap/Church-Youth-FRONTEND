@@ -78,7 +78,7 @@ export const AuthProvider = ({ children }) => {
     console.log("Logout is called");
     try {
       await axios.post(
-        `${import.meta.env.VITE_BACKEND_URI}/api/v1/users/logout`,
+        `${import.meta.env.VITE_BACKEND_URI}/api/v1/auth/logout`,
         {},
         { withCredentials: true }
       );
