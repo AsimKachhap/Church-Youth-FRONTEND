@@ -41,7 +41,7 @@ export const AuthProvider = ({ children }) => {
     console.log("refreshAccessToken is called");
     try {
       const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URI}/api/v1/auth/refresh-acsess-token`,
+        `${import.meta.env.VITE_BACKEND_URI}/api/v1/auth/refresh-access-token`,
         {
           withCredentials: true,
         }
