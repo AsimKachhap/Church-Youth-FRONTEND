@@ -5,6 +5,7 @@ const axiosInstance = axios.create({
     import.meta.mode === "development"
       ? "http://localhost:5173"
       : import.meta.env.VITE_BACKEND_URI,
+  withCredentials: true,
 });
 
 export default axiosInstance;
