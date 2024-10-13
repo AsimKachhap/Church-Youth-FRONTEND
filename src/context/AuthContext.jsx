@@ -61,7 +61,7 @@ export const AuthProvider = ({ children }) => {
     try {
       const response = await axios.post(
         `${import.meta.env.VITE_BACKEND_URI}/api/v1/auth/login`,
-        (email, password),
+        { email, password },
         { withCredentials: true }
       );
       console.log("Login Response: ", response);
