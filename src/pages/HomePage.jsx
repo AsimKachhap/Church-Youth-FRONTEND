@@ -23,7 +23,9 @@ const HomePage = () => {
     }
   };
 
-  console.log("Home Page jus loaded");
+  if (user == null || undefined) {
+    navigate("/login");
+  }
 
   return (
     <div className="flex flex-col h-screen">
