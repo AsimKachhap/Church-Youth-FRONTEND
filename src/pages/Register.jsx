@@ -42,7 +42,7 @@ const Register = () => {
       );
 
       if (response.status === 201) {
-        //   login({ email, password });
+        login({ email, password });
         navigate("/"); // Redirect to home page after registration
       }
     } catch (error) {
