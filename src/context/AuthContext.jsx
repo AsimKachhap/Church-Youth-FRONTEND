@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from "react";
-import axios from "axios";
+import axiosInstance from "../lib/axios";
 import { useNavigate } from "react-router-dom";
 
 const AuthContext = createContext();
@@ -13,14 +13,8 @@ export const AuthProvider = ({ children }) => {
 
   //Fetching User Info
   const fetchUserInfo = async () => {
-    console.log("fetchUserInfo is called");
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URI}/api/v1/users/me`,
-        {
-          withCredentials: true,
-        }
-      );
+      const response = await axiosInstance.get("/api/v1/users/me");
       console.log("My Profile: ", response);
       setUser(response.data);
     } catch (error) {
@@ -42,11 +36,8 @@ export const AuthProvider = ({ children }) => {
   const refreshAccessToken = async () => {
     console.log("refreshAccessToken is called");
     try {
-      const response = await axios.get(
-        `${import.meta.env.VITE_BACKEND_URI}/api/v1/auth/refresh-access-token`,
-        {
-          withCredentials: true,
-        }
+      const response = await axiosInstance.get(
+        "/api/v1/auth/refresh-access-token"
       );
 
       console.log("Access token refreshed: ", response);
@@ -61,11 +52,10 @@ export const AuthProvider = ({ children }) => {
     console.log(`Email: ${email}, Password: ${password}`);
     setLoading(true);
     try {
-      const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URI}/api/v1/auth/login`,
-        { email, password },
-        { withCredentials: true }
-      );
+      const response = await axiosInstance.post("/api/v1/auth/login", {
+        email,
+        password,
+      });
       console.log("Login Response: ", response);
       await fetchUserInfo(); // Fetch user info after successful login
     } catch (error) {
@@ -79,10 +69,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     console.log("Logout is called");
     try {
-      await axios.post(
-        `${import.meta.env.VITE_BACKEND_URI}/api/v1/auth/logout`,
-        { withCredentials: true }
-      );
+      await axiosInstance.post("/api/v1/auth/logout");
       console.log("Logout successful");
       setUser(null);
       navigate("/login");
