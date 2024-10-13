@@ -34,7 +34,7 @@ export const AuthProvider = ({ children }) => {
   // Load User on initial render
   useEffect(() => {
     fetchUserInfo();
-  }, []);
+  }, [user]);
 
   // Refresh Access Token
   const refreshAccessToken = async () => {
@@ -79,7 +79,6 @@ export const AuthProvider = ({ children }) => {
     try {
       await axios.post(
         `${import.meta.env.VITE_BACKEND_URI}/api/v1/auth/logout`,
-        {},
         { withCredentials: true }
       );
       console.log("Logout successful");
