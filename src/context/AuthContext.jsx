@@ -33,7 +33,9 @@ export const AuthProvider = ({ children }) => {
 
   // Load User on initial render
   useEffect(() => {
-    fetchUserInfo();
+    (async () => {
+      await fetchUserInfo();
+    })();
   }, [user]);
 
   // Refresh Access Token
