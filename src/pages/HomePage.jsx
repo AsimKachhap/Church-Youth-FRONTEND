@@ -23,7 +23,8 @@ const HomePage = () => {
     }
   };
 
-  console.log(import.meta.env.VITE_BACKEND_URI);
+  console.log("Home Page jus loaded");
+
   return (
     <div className="flex flex-col h-screen">
       {/* Top Navbar */}
