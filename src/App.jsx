@@ -3,7 +3,7 @@ import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Logout from "./pages/Logout";
 import HomePage from "./pages/HomePage";
-import Dashboard from "./pages/Dashboard"; // A basic dashboard component.
+import Dashboard from "./pages/Dashboard";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import UserDetailsForm from "./pages/UserDetailsForm";
 
@@ -14,8 +14,8 @@ const PrivateRoute = ({ children }) => {
 
 const App = () => {
   return (
-    <AuthProvider>
-      <Router>
+    <Router>
+      <AuthProvider>
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/login" element={<Login />} />
@@ -32,8 +32,8 @@ const App = () => {
             }
           />
         </Routes>
-      </Router>
-    </AuthProvider>
+      </AuthProvider>
+    </Router>
   );
 };
 

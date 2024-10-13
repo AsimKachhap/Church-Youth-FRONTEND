@@ -29,15 +29,20 @@ const Register = () => {
 
     try {
       // Send registration request to backend
-      const response = await axios.post(`${BACKEND_URI}/api/v1/auth/register`, {
-        username,
-        email,
-        password,
-      });
+      const response = await axios.post(
+        `${BACKEND_URI}/api/v1/auth/register`,
+        {
+          username,
+          email,
+          password,
+        },
+        {
+          withCredentials: true,
+        }
+      );
 
       if (response.status === 201) {
-        login({ email });
-        navigate("/"); // Redirect to home page after registration
+        login({ email, password });
       }
     } catch (error) {
       console.error("Registration failed:", error.message);
