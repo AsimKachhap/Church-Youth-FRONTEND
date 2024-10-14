@@ -1,19 +1,23 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom"; // Import useParams to get user ID
+import axiosInstance from "../lib/axios";
 
 const UserDetailsForm = () => {
+  const { id } = useParams(); // Get user._id from URL params
+  const navigate = useNavigate();
+
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const totalSteps = 3;
+
   const [formData, setFormData] = useState({
     firstName: "",
     middleName: "",
     lastName: "",
     photo: null,
-    fathersName: "",
-    gender: "",
-    age: "",
     phone: "",
+    age: "",
+    gender: "",
     currentAddress: "",
     degree: "",
     college: "",
@@ -21,6 +25,7 @@ const UserDetailsForm = () => {
     jobTitle: "",
     company: "",
     location: "",
+
     homeParish: "",
     district: "",
     state: "",
@@ -28,10 +33,10 @@ const UserDetailsForm = () => {
     churchContribution: "",
   });
 
-  const navigate = useNavigate();
-
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
+
+    // Directly update flat fields and handle the file input for 'photo'
     setFormData((prevData) => ({
       ...prevData,
       [name]: type === "file" ? files[0] : value,
@@ -41,14 +46,86 @@ const UserDetailsForm = () => {
   const nextStep = () => setCurrentStep((prevStep) => prevStep + 1);
   const prevStep = () => setCurrentStep((prevStep) => prevStep - 1);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Form Submitted", formData);
-    setIsSubmitted(true);
 
-    setTimeout(() => {
-      navigate("/");
-    }, 3000);
+    try {
+      const formDataToSubmit = new FormData();
+      // Structure the data to match the expected backend format
+      formDataToSubmit.append("firstName", formData.firstName);
+      formDataToSubmit.append("middleName", formData.middleName);
+      formDataToSubmit.append("lastName", formData.lastName);
+      formDataToSubmit.append("phoneNo", formData.phone); // Change phone to phoneNo
+      formDataToSubmit.append("age", formData.age);
+      formDataToSubmit.append("gender", formData.gender);
+      formDataToSubmit.append("currentAddress", formData.currentAddress);
+      formDataToSubmit.append(
+        "churchContribution",
+        formData.churchContribution
+      );
+
+      // Manually append nested fields (flattened structure)
+      formDataToSubmit.append(
+        "highestQualification.degree",
+        formData.highestQualification.degree
+      );
+      formDataToSubmit.append(
+        "highestQualification.college",
+        formData.highestQualification.college
+      );
+      formDataToSubmit.append(
+        "highestQualification.passingYear",
+        formData.highestQualification.passingYear
+      );
+
+      formDataToSubmit.append(
+        "jobDetails.jobTitle",
+        formData.jobDetails.jobTitle
+      );
+      formDataToSubmit.append(
+        "jobDetails.company",
+        formData.jobDetails.company
+      );
+      formDataToSubmit.append(
+        "jobDetails.location",
+        formData.jobDetails.location
+      );
+
+      formDataToSubmit.append(
+        "parishInfo.homeParish",
+        formData.parishInfo.homeParish
+      );
+      formDataToSubmit.append(
+        "parishInfo.district",
+        formData.parishInfo.district
+      );
+      formDataToSubmit.append("parishInfo.state", formData.parishInfo.state);
+      formDataToSubmit.append("parishInfo.pin", formData.parishInfo.pin);
+
+      // Append the photo file
+      if (formData.photo) {
+        formDataToSubmit.append("photo", formData.photo);
+      }
+
+      // Send the data to the backend
+      await axiosInstance.post(
+        `/api/v1/users/${id}/user-details`,
+        formDataToSubmit,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      setIsSubmitted(true);
+
+      setTimeout(() => {
+        navigate("/");
+      }, 3000);
+    } catch (error) {
+      console.error("Error submitting form:", error);
+    }
   };
 
   if (isSubmitted) {
@@ -164,64 +241,6 @@ const UserDetailsForm = () => {
 
               <div>
                 <label
-                  htmlFor="fathersName"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Father's Name
-                </label>
-                <input
-                  type="text"
-                  name="fathersName"
-                  placeholder="Father's Name"
-                  value={formData.fathersName}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  required
-                />
-              </div>
-
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="sm:w-1/2">
-                  <label
-                    htmlFor="gender"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Gender
-                  </label>
-                  <select
-                    name="gender"
-                    value={formData.gender}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    required
-                  >
-                    <option value="">Select Gender</option>
-                    <option value="male">Male</option>
-                    <option value="female">Female</option>
-                    <option value="other">Other</option>
-                  </select>
-                </div>
-                <div className="sm:w-1/2">
-                  <label
-                    htmlFor="age"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Age
-                  </label>
-                  <input
-                    type="number"
-                    name="age"
-                    placeholder="Age"
-                    value={formData.age}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label
                   htmlFor="phone"
                   className="block text-sm font-medium text-gray-700"
                 >
@@ -240,19 +259,41 @@ const UserDetailsForm = () => {
 
               <div>
                 <label
-                  htmlFor="currentAddress"
+                  htmlFor="age"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Current Address
+                  Age
                 </label>
-                <textarea
-                  name="currentAddress"
-                  placeholder="Current Address"
-                  value={formData.currentAddress}
+                <input
+                  type="number"
+                  name="age"
+                  placeholder="Age"
+                  value={formData.age}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   required
                 />
+              </div>
+
+              <div>
+                <label
+                  htmlFor="gender"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Gender
+                </label>
+                <select
+                  name="gender"
+                  value={formData.gender}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  required
+                >
+                  <option value="">Select Gender</option>
+                  <option value="Male">Male</option>
+                  <option value="Female">Female</option>
+                  <option value="Other">Other</option>
+                </select>
               </div>
             </div>
           )}
@@ -260,111 +301,112 @@ const UserDetailsForm = () => {
           {/* Step 2: Educational & Occupational Background */}
           {currentStep === 2 && (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold">
-                Highest Educational Qualification
-              </h3>
-              <div>
+              <h3 className="text-lg font-semibold text-gray-900">Education</h3>
+              <div className="space-y-2">
                 <label
-                  htmlFor="degree"
+                  htmlFor="highestQualification.degree"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Degree/Course
+                  Degree
                 </label>
                 <input
                   type="text"
-                  name="degree"
-                  placeholder="Degree or Course"
-                  value={formData.degree}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  required
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="college"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  College/University
-                </label>
-                <input
-                  type="text"
-                  name="college"
-                  placeholder="College or University"
-                  value={formData.college}
-                  onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  required
-                />
-              </div>
-              <div>
-                <label
-                  htmlFor="passingYear"
-                  className="block text-sm font-medium text-gray-700"
-                >
-                  Passing Year
-                </label>
-                <input
-                  type="number"
-                  name="passingYear"
-                  placeholder="Passing Year"
-                  value={formData.passingYear}
+                  name="highestQualification.degree"
+                  placeholder="Degree"
+                  value={formData.highestQualification.degree}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   required
                 />
               </div>
 
-              <h3 className="text-lg font-semibold">Occupational Details</h3>
-              <div>
+              <div className="space-y-2">
                 <label
-                  htmlFor="jobTitle"
+                  htmlFor="highestQualification.college"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  College/University
+                </label>
+                <input
+                  type="text"
+                  name="highestQualification.college"
+                  placeholder="College/University"
+                  value={formData.highestQualification.college}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  required
+                />
+              </div>
+
+              <div className="space-y-2">
+                <label
+                  htmlFor="highestQualification.passingYear"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Passing Year
+                </label>
+                <input
+                  type="number"
+                  name="highestQualification.passingYear"
+                  placeholder="Passing Year"
+                  value={formData.highestQualification.passingYear}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  required
+                />
+              </div>
+
+              <h3 className="text-lg font-semibold text-gray-900">
+                Job Details
+              </h3>
+              <div className="space-y-2">
+                <label
+                  htmlFor="jobDetails.jobTitle"
                   className="block text-sm font-medium text-gray-700"
                 >
                   Job Title
                 </label>
                 <input
                   type="text"
-                  name="jobTitle"
+                  name="jobDetails.jobTitle"
                   placeholder="Job Title"
-                  value={formData.jobTitle}
+                  value={formData.jobDetails.jobTitle}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  required
                 />
               </div>
-              <div>
+
+              <div className="space-y-2">
                 <label
-                  htmlFor="company"
+                  htmlFor="jobDetails.company"
                   className="block text-sm font-medium text-gray-700"
                 >
                   Company
                 </label>
                 <input
                   type="text"
-                  name="company"
-                  placeholder="Company Name"
-                  value={formData.company}
+                  name="jobDetails.company"
+                  placeholder="Company"
+                  value={formData.jobDetails.company}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  required
                 />
               </div>
-              <div>
+
+              <div className="space-y-2">
                 <label
-                  htmlFor="location"
+                  htmlFor="jobDetails.location"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Work Location
+                  Location
                 </label>
                 <input
                   type="text"
-                  name="location"
-                  placeholder="Work Location"
-                  value={formData.location}
+                  name="jobDetails.location"
+                  placeholder="Location"
+                  value={formData.jobDetails.location}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  required
                 />
               </div>
             </div>
@@ -373,88 +415,94 @@ const UserDetailsForm = () => {
           {/* Step 3: Parish Information & Church Involvement */}
           {currentStep === 3 && (
             <div className="space-y-4">
-              <div>
+              <h3 className="text-lg font-semibold text-gray-900">
+                Parish Information
+              </h3>
+              <div className="space-y-2">
                 <label
-                  htmlFor="homeParish"
+                  htmlFor="parishInfo.homeParish"
                   className="block text-sm font-medium text-gray-700"
                 >
                   Home Parish
                 </label>
                 <input
                   type="text"
-                  name="homeParish"
+                  name="parishInfo.homeParish"
                   placeholder="Home Parish"
-                  value={formData.homeParish}
+                  value={formData.parishInfo.homeParish}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   required
                 />
               </div>
-              <div>
+
+              <div className="space-y-2">
                 <label
-                  htmlFor="district"
+                  htmlFor="parishInfo.district"
                   className="block text-sm font-medium text-gray-700"
                 >
                   District
                 </label>
                 <input
                   type="text"
-                  name="district"
+                  name="parishInfo.district"
                   placeholder="District"
-                  value={formData.district}
+                  value={formData.parishInfo.district}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   required
                 />
               </div>
-              <div>
+
+              <div className="space-y-2">
                 <label
-                  htmlFor="state"
+                  htmlFor="parishInfo.state"
                   className="block text-sm font-medium text-gray-700"
                 >
                   State
                 </label>
                 <input
                   type="text"
-                  name="state"
+                  name="parishInfo.state"
                   placeholder="State"
-                  value={formData.state}
+                  value={formData.parishInfo.state}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   required
                 />
               </div>
-              <div>
+
+              <div className="space-y-2">
                 <label
-                  htmlFor="pin"
+                  htmlFor="parishInfo.pin"
                   className="block text-sm font-medium text-gray-700"
                 >
                   PIN Code
                 </label>
                 <input
                   type="text"
-                  name="pin"
+                  name="parishInfo.pin"
                   placeholder="PIN Code"
-                  value={formData.pin}
+                  value={formData.parishInfo.pin}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   required
                 />
               </div>
-              <div>
+
+              <div className="space-y-2">
                 <label
                   htmlFor="churchContribution"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Church Contributions (if any)
+                  Church Contribution
                 </label>
-                <input
-                  type="text"
-                  name="How You can Contribute to the Church?"
-                  placeholder="I can... Kuch bhi jo tm krna chahoge"
+                <textarea
+                  name="churchContribution"
+                  placeholder="Church Contribution"
                   value={formData.churchContribution}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full h-24 px-3 py-2 border border-gray-300 rounded-md"
                 />
               </div>
             </div>
@@ -466,23 +514,24 @@ const UserDetailsForm = () => {
               <button
                 type="button"
                 onClick={prevStep}
-                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-md"
+                className="px-4 py-2 font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
               >
                 Previous
               </button>
             )}
-            {currentStep < 3 ? (
+            {currentStep < totalSteps && (
               <button
                 type="button"
                 onClick={nextStep}
-                className="px-4 py-2 bg-blue-600 text-white rounded-md"
+                className="px-4 py-2 font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
               >
                 Next
               </button>
-            ) : (
+            )}
+            {currentStep === totalSteps && (
               <button
                 type="submit"
-                className="px-4 py-2 bg-green-600 text-white rounded-md"
+                className="px-4 py-2 font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
               >
                 Submit
               </button>

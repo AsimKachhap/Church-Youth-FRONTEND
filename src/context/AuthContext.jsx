@@ -11,26 +11,12 @@ export const AuthProvider = ({ children }) => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  //Fetching User Info
-  const fetchUserInfo = async () => {
-    try {
-      const response = await axiosInstance.get("/api/v1/users/me");
-      console.log("My Profile: ", response);
-      setUser(response.data);
-    } catch (error) {
-      console.error("Failed to fetch user info", error);
-      if (error.response && error.response.status === 401) {
-        await refreshAccessToken();
-      }
-    }
-  };
-
   // Load User on initial render
   useEffect(() => {
     (async () => {
       await fetchUserInfo();
     })();
-  }, [user]);
+  }, []);
 
   // Refresh Access Token
   const refreshAccessToken = async () => {
@@ -57,11 +43,26 @@ export const AuthProvider = ({ children }) => {
         password,
       });
       console.log("Login Response: ", response);
+
       await fetchUserInfo(); // Fetch user info after successful login
     } catch (error) {
       console.error("Login Failed !!!", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  //Fetching User Info
+  const fetchUserInfo = async () => {
+    try {
+      const response = await axiosInstance.get("/api/v1/users/me");
+      console.log("My Profile: ", response);
+      setUser(response.data.data);
+    } catch (error) {
+      console.error("Failed to fetch user info", error);
+      if (error.response && error.response.status === 401) {
+        await refreshAccessToken();
+      }
     }
   };
 

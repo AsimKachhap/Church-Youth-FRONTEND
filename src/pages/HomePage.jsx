@@ -1,21 +1,33 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useAuth } from "../context/AuthContext";
 import { useNavigate } from "react-router-dom";
 
 const HomePage = () => {
   const { user, logout } = useAuth();
   const [date, setDate] = useState(new Date());
-
+  const [showModal, setShowModal] = useState(false);
+  const timerRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
-    const timer = setInterval(() => setDate(new Date()), 1000);
-    return () => clearInterval(timer);
+    if (!user) {
+      navigate("/login");
+    } else if (!user.isDetailsComplete) {
+      // Show modal if user details are incomplete
+      setShowModal(true);
+    }
+  }, [user, navigate]);
+
+  useEffect(() => {
+    timerRef.current = setInterval(() => {
+      setDate(new Date());
+    }, 1000);
+
+    return () => clearInterval(timerRef.current); // Cleanup on unmount
   }, []);
 
   const handleLogout = async () => {
     try {
-      console.log("I ran");
       await logout();
       navigate("/login");
     } catch (error) {
@@ -23,9 +35,10 @@ const HomePage = () => {
     }
   };
 
-  if (user == null || undefined) {
-    navigate("/login");
-  }
+  const handleConfirmRedirect = () => {
+    setShowModal(false); // Close modal
+    navigate(`/user-details/${user._id}`); // Redirect to user details page
+  };
 
   return (
     <div className="flex flex-col h-screen">
@@ -33,7 +46,7 @@ const HomePage = () => {
       <nav className="flex justify-between items-center bg-blue-600 text-white p-4 shadow-md">
         <div className="flex items-center space-x-4">
           <img
-            src={user?.profilePicture} // Add fallback image for dp later
+            src={user?.profilePicture}
             alt="User DP"
             className="h-10 w-10 rounded-full"
           />
@@ -90,6 +103,26 @@ const HomePage = () => {
       <footer className="bg-blue-600 text-white p-4 text-center">
         <p>&copy; 2024 Your Organization. All rights reserved.</p>
       </footer>
+
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded shadow-md max-w-sm w-full">
+            <h2 className="text-lg font-bold mb-4">Complete Your Profile</h2>
+            <p className="mb-4">
+              Please complete your user details before continuing.
+            </p>
+            <div className="flex justify-end space-x-4">
+              <button
+                className="bg-blue-500 hover:bg-blue-600 text-white px-4 py-2 rounded"
+                onClick={handleConfirmRedirect}
+              >
+                Complete Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
