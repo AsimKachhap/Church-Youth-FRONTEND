@@ -10,7 +10,7 @@ const HomePage = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.log("UserDetails Compelete status : ", user.isDetailsComplete);
+    console.log("UserDetails Compelete status : ", user?.isDetailsComplete);
     if (!user) {
       navigate("/login");
     } else if (!user.isDetailsComplete) {
