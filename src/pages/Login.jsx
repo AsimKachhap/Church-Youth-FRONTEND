@@ -13,6 +13,8 @@ const Login = () => {
     e.preventDefault();
     setError(null); // Reset error state before login attempt
 
+    console.log(import.meta.env.VITE_BACKEND_URI);
+
     try {
       await login(email, password);
       navigate("/");
