@@ -15,7 +15,7 @@ const UserDetailsForm = () => {
     middleName: "",
     lastName: "",
     photo: null,
-    phone: "",
+    phoneNo: "",
     age: "",
     gender: "",
     currentAddress: "",
@@ -36,7 +36,6 @@ const UserDetailsForm = () => {
   const handleChange = (e) => {
     const { name, value, type, files } = e.target;
 
-    // Directly update flat fields and handle the file input for 'photo'
     setFormData((prevData) => ({
       ...prevData,
       [name]: type === "file" ? files[0] : value,
@@ -50,73 +49,12 @@ const UserDetailsForm = () => {
     e.preventDefault();
 
     try {
-      const formDataToSubmit = new FormData();
-      // Structure the data to match the expected backend format
-      formDataToSubmit.append("firstName", formData.firstName);
-      formDataToSubmit.append("middleName", formData.middleName);
-      formDataToSubmit.append("lastName", formData.lastName);
-      formDataToSubmit.append("phoneNo", formData.phone); // Change phone to phoneNo
-      formDataToSubmit.append("age", formData.age);
-      formDataToSubmit.append("gender", formData.gender);
-      formDataToSubmit.append("currentAddress", formData.currentAddress);
-      formDataToSubmit.append(
-        "churchContribution",
-        formData.churchContribution
-      );
-
-      // Manually append nested fields (flattened structure)
-      formDataToSubmit.append(
-        "highestQualification.degree",
-        formData.highestQualification.degree
-      );
-      formDataToSubmit.append(
-        "highestQualification.college",
-        formData.highestQualification.college
-      );
-      formDataToSubmit.append(
-        "highestQualification.passingYear",
-        formData.highestQualification.passingYear
-      );
-
-      formDataToSubmit.append(
-        "jobDetails.jobTitle",
-        formData.jobDetails.jobTitle
-      );
-      formDataToSubmit.append(
-        "jobDetails.company",
-        formData.jobDetails.company
-      );
-      formDataToSubmit.append(
-        "jobDetails.location",
-        formData.jobDetails.location
-      );
-
-      formDataToSubmit.append(
-        "parishInfo.homeParish",
-        formData.parishInfo.homeParish
-      );
-      formDataToSubmit.append(
-        "parishInfo.district",
-        formData.parishInfo.district
-      );
-      formDataToSubmit.append("parishInfo.state", formData.parishInfo.state);
-      formDataToSubmit.append("parishInfo.pin", formData.parishInfo.pin);
-
-      // Append the photo file
-      if (formData.photo) {
-        formDataToSubmit.append("photo", formData.photo);
-      }
-
       // Send the data to the backend
-      await axiosInstance.post(
-        `/api/v1/users/${id}/user-details`,
-        formDataToSubmit,
-        {
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
+      await axiosInstance.post(`/api/v1/users/${id}/user-details`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
 
       setIsSubmitted(true);
 
@@ -241,16 +179,16 @@ const UserDetailsForm = () => {
 
               <div>
                 <label
-                  htmlFor="phone"
+                  htmlFor="phoneNo"
                   className="block text-sm font-medium text-gray-700"
                 >
                   Phone Number
                 </label>
                 <input
                   type="tel"
-                  name="phone"
+                  name="phoneNo"
                   placeholder="Phone Number"
-                  value={formData.phone}
+                  value={formData.phoneNo}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   required
@@ -295,6 +233,24 @@ const UserDetailsForm = () => {
                   <option value="Other">Other</option>
                 </select>
               </div>
+
+              <div>
+                <label
+                  htmlFor="currentAddress"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Current Address
+                </label>
+                <input
+                  type="text"
+                  name="currentAddress"
+                  placeholder="Current Address"
+                  value={formData.currentAddress}
+                  onChange={handleChange}
+                  className="w-full h-24 px-3 py-2 border border-gray-300 rounded-md"
+                  required
+                />
+              </div>
             </div>
           )}
 
@@ -304,16 +260,16 @@ const UserDetailsForm = () => {
               <h3 className="text-lg font-semibold text-gray-900">Education</h3>
               <div className="space-y-2">
                 <label
-                  htmlFor="highestQualification.degree"
+                  htmlFor="degree"
                   className="block text-sm font-medium text-gray-700"
                 >
                   Degree
                 </label>
                 <input
                   type="text"
-                  name="highestQualification.degree"
+                  name="degree"
                   placeholder="Degree"
-                  value={formData.highestQualification.degree}
+                  value={formData.degree}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   required
@@ -322,16 +278,16 @@ const UserDetailsForm = () => {
 
               <div className="space-y-2">
                 <label
-                  htmlFor="highestQualification.college"
+                  htmlFor="college"
                   className="block text-sm font-medium text-gray-700"
                 >
                   College/University
                 </label>
                 <input
                   type="text"
-                  name="highestQualification.college"
+                  name="college"
                   placeholder="College/University"
-                  value={formData.highestQualification.college}
+                  value={formData.college}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   required
@@ -340,16 +296,16 @@ const UserDetailsForm = () => {
 
               <div className="space-y-2">
                 <label
-                  htmlFor="highestQualification.passingYear"
+                  htmlFor="passingYear"
                   className="block text-sm font-medium text-gray-700"
                 >
                   Passing Year
                 </label>
                 <input
                   type="number"
-                  name="highestQualification.passingYear"
+                  name="passingYear"
                   placeholder="Passing Year"
-                  value={formData.highestQualification.passingYear}
+                  value={formData.passingYear}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   required
@@ -361,16 +317,16 @@ const UserDetailsForm = () => {
               </h3>
               <div className="space-y-2">
                 <label
-                  htmlFor="jobDetails.jobTitle"
+                  htmlFor="jobTitle"
                   className="block text-sm font-medium text-gray-700"
                 >
                   Job Title
                 </label>
                 <input
                   type="text"
-                  name="jobDetails.jobTitle"
+                  name="jobTitle"
                   placeholder="Job Title"
-                  value={formData.jobDetails.jobTitle}
+                  value={formData.jobTitle}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 />
@@ -378,16 +334,16 @@ const UserDetailsForm = () => {
 
               <div className="space-y-2">
                 <label
-                  htmlFor="jobDetails.company"
+                  htmlFor="company"
                   className="block text-sm font-medium text-gray-700"
                 >
                   Company
                 </label>
                 <input
                   type="text"
-                  name="jobDetails.company"
+                  name="company"
                   placeholder="Company"
-                  value={formData.jobDetails.company}
+                  value={formData.company}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 />
@@ -395,16 +351,16 @@ const UserDetailsForm = () => {
 
               <div className="space-y-2">
                 <label
-                  htmlFor="jobDetails.location"
+                  htmlFor="location"
                   className="block text-sm font-medium text-gray-700"
                 >
                   Location
                 </label>
                 <input
                   type="text"
-                  name="jobDetails.location"
+                  name="location"
                   placeholder="Location"
-                  value={formData.jobDetails.location}
+                  value={formData.location}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                 />
@@ -420,16 +376,16 @@ const UserDetailsForm = () => {
               </h3>
               <div className="space-y-2">
                 <label
-                  htmlFor="parishInfo.homeParish"
+                  htmlFor="homeParish"
                   className="block text-sm font-medium text-gray-700"
                 >
                   Home Parish
                 </label>
                 <input
                   type="text"
-                  name="parishInfo.homeParish"
+                  name="homeParish"
                   placeholder="Home Parish"
-                  value={formData.parishInfo.homeParish}
+                  value={formData.homeParish}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   required
@@ -438,16 +394,16 @@ const UserDetailsForm = () => {
 
               <div className="space-y-2">
                 <label
-                  htmlFor="parishInfo.district"
+                  htmlFor="district"
                   className="block text-sm font-medium text-gray-700"
                 >
                   District
                 </label>
                 <input
                   type="text"
-                  name="parishInfo.district"
+                  name="district"
                   placeholder="District"
-                  value={formData.parishInfo.district}
+                  value={formData.district}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   required
@@ -456,16 +412,16 @@ const UserDetailsForm = () => {
 
               <div className="space-y-2">
                 <label
-                  htmlFor="parishInfo.state"
+                  htmlFor="state"
                   className="block text-sm font-medium text-gray-700"
                 >
                   State
                 </label>
                 <input
                   type="text"
-                  name="parishInfo.state"
+                  name="state"
                   placeholder="State"
-                  value={formData.parishInfo.state}
+                  value={formData.state}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   required
@@ -474,16 +430,16 @@ const UserDetailsForm = () => {
 
               <div className="space-y-2">
                 <label
-                  htmlFor="parishInfo.pin"
+                  htmlFor="pin"
                   className="block text-sm font-medium text-gray-700"
                 >
                   PIN Code
                 </label>
                 <input
                   type="text"
-                  name="parishInfo.pin"
+                  name="pin"
                   placeholder="PIN Code"
-                  value={formData.parishInfo.pin}
+                  value={formData.pin}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md"
                   required
