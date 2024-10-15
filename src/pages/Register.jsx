@@ -30,7 +30,7 @@ const Register = () => {
     try {
       // Send registration request to backend
       const response = await axios.post(
-        `${BACKEND_URI}/api/v1/auth/register`,
+        `${BACKEND_URI}api/v1/auth/register`,
         {
           username,
           email,
