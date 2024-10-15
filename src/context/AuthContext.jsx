@@ -23,7 +23,7 @@ export const AuthProvider = ({ children }) => {
     console.log("refreshAccessToken is called");
     try {
       const response = await axiosInstance.get(
-        "/api/v1/auth/refresh-access-token"
+        "api/v1/auth/refresh-access-token"
       );
 
       console.log("Access token refreshed: ", response);
@@ -38,7 +38,7 @@ export const AuthProvider = ({ children }) => {
     console.log(`Email: ${email}, Password: ${password}`);
     setLoading(true);
     try {
-      const response = await axiosInstance.post("/api/v1/auth/login", {
+      const response = await axiosInstance.post("api/v1/auth/login", {
         email,
         password,
       });
@@ -55,7 +55,7 @@ export const AuthProvider = ({ children }) => {
   //Fetching User Info
   const fetchUserInfo = async () => {
     try {
-      const response = await axiosInstance.get("/api/v1/users/me", {
+      const response = await axiosInstance.get("api/v1/users/me", {
         withCredentials: true,
       });
       console.log("My Profile: ", response);
@@ -72,7 +72,7 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     console.log("Logout is called");
     try {
-      await axiosInstance.post("/api/v1/auth/logout");
+      await axiosInstance.post("api/v1/auth/logout");
       console.log("Logout successful");
       setUser(null);
       navigate("/login");
