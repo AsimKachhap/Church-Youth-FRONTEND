@@ -58,13 +58,30 @@ export const AuthProvider = ({ children }) => {
       const response = await axiosInstance.get("api/v1/users/me", {
         withCredentials: true,
       });
-      console.log("My Profile: ", response);
+      console.log(
+        "Response.data.data of fetchUserInfo() : ",
+        response.data.data
+      );
+
+      console.log("Current user state : ", user);
       setUser(response.data.data);
     } catch (error) {
       console.error("Failed to fetch user info", error);
       if (error.response && error.response.status === 401) {
         await refreshAccessToken();
       }
+    }
+  };
+
+  // Add a function in your AuthContext to refetch user info
+  const refetchUserInfo = async () => {
+    try {
+      const response = await axiosInstance.get("api/v1/users/me", {
+        withCredentials: true,
+      });
+      setUser(response.data.data);
+    } catch (error) {
+      console.error("Failed to refetch user info", error);
     }
   };
 
@@ -82,7 +99,9 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, setUser, login, logout, loading }}>
+    <AuthContext.Provider
+      value={{ user, refetchUserInfo, login, logout, loading }}
+    >
       {children}
     </AuthContext.Provider>
   );

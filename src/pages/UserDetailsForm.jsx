@@ -1,10 +1,12 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom"; // Import useParams to get user ID
 import axiosInstance from "../lib/axios";
+import { useAuth } from "../context/AuthContext";
 
 const UserDetailsForm = () => {
   const { id } = useParams(); // Get user._id from URL params
   const navigate = useNavigate();
+  const { refetchUserInfo } = useAuth();
 
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
@@ -58,7 +60,12 @@ const UserDetailsForm = () => {
 
       setIsSubmitted(true);
 
-      setTimeout(() => {
+      setTimeout(async () => {
+        try {
+          await refetchUserInfo();
+        } catch (error) {
+          console.log("Failed to call reFetchUserInfo() :", error);
+        }
         navigate("/");
       }, 3000);
     } catch (error) {
