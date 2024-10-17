@@ -1,25 +1,22 @@
 import { useState } from "react";
-import { useParams, useNavigate } from "react-router-dom"; // Import useParams to get user ID
+import { ToastContainer, toast } from "react-toastify";
 import axiosInstance from "../lib/axios";
-import { useAuth } from "../context/AuthContext";
+import { useNavigate, useParams } from "react-router-dom";
+import { refetchUserInfo } from "../context/AuthContext";
+import "react-toastify/dist/ReactToastify.css";
 
 const UserDetailsForm = () => {
-  const { id } = useParams(); // Get user._id from URL params
-  const navigate = useNavigate();
-  const { refetchUserInfo } = useAuth();
-
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
-  const totalSteps = 3;
-
+  const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     firstName: "",
     middleName: "",
     lastName: "",
-    photo: null,
     phoneNo: "",
     age: "",
     gender: "",
+    photo: null,
     currentAddress: "",
     degree: "",
     college: "",
@@ -27,7 +24,6 @@ const UserDetailsForm = () => {
     jobTitle: "",
     company: "",
     location: "",
-
     homeParish: "",
     district: "",
     state: "",
@@ -35,42 +31,184 @@ const UserDetailsForm = () => {
     churchContribution: "",
   });
 
-  const handleChange = (e) => {
-    const { name, value, type, files } = e.target;
+  const navigate = useNavigate();
+  const BACKEND_URI = import.meta.env.VITE_BACKEND_URI;
+  const { id } = useParams();
 
-    setFormData((prevData) => ({
-      ...prevData,
-      [name]: type === "file" ? files[0] : value,
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
     }));
   };
 
-  const nextStep = () => setCurrentStep((prevStep) => prevStep + 1);
-  const prevStep = () => setCurrentStep((prevStep) => prevStep - 1);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    try {
-      // Send the data to the backend
-      await axiosInstance.post(`/api/v1/users/${id}/user-details`, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
-      });
-
-      setIsSubmitted(true);
-
-      setTimeout(async () => {
-        try {
-          await refetchUserInfo();
-        } catch (error) {
-          console.log("Failed to call reFetchUserInfo() :", error);
-        }
-        navigate("/");
-      }, 3000);
-    } catch (error) {
-      console.error("Error submitting form:", error);
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file && !file.type.startsWith("image/")) {
+      toast.error("Only image files are allowed!");
+      return;
     }
+    setFormData((prev) => ({
+      ...prev,
+      photo: file,
+    }));
+  };
+
+  const validateStep1 = () => {
+    const { firstName, lastName, phoneNo, age, gender, photo, currentAddress } =
+      formData;
+
+    if (
+      !firstName ||
+      !lastName ||
+      !phoneNo ||
+      !age ||
+      !gender ||
+      !photo ||
+      !currentAddress
+    ) {
+      toast.error("All fields except Middle Name are required in Step 1!");
+      return false;
+    }
+
+    if (phoneNo.length !== 10 || !/^\d+$/.test(phoneNo)) {
+      toast.error("Phone number must be a valid 10-digit number!");
+      return false;
+    }
+
+    if (age < 14) {
+      toast.error("You are too young to join Youth.");
+      return false;
+    }
+
+    return true;
+  };
+
+  const validateStep2 = () => {
+    const { degree, college, passingYear, jobTitle, company, location } =
+      formData;
+    if (
+      !degree ||
+      !college ||
+      !passingYear ||
+      !jobTitle ||
+      !company ||
+      !location
+    ) {
+      toast.error("All fields are required in Step 2!");
+      return false;
+    }
+
+    if (!/^\d{4}$/.test(passingYear)) {
+      toast.error("Please provide a valid year of passing (e.g., 2020).");
+      return false;
+    }
+
+    return true;
+  };
+
+  const validateStep3 = () => {
+    const { homeParish, district, state, pin, churchContribution } = formData;
+    if (!homeParish || !district || !state || !pin || !churchContribution) {
+      toast.error("All fields are required in Step 3!");
+      return false;
+    }
+
+    if (!/^\d{6}$/.test(pin)) {
+      toast.error("Please provide a valid 6-digit PIN code.");
+      return false;
+    }
+
+    return true;
+  };
+
+  const handleNext = () => {
+    if (currentStep === 1 && !validateStep1()) return;
+    if (currentStep === 2 && !validateStep2()) return;
+    setCurrentStep((prev) => prev + 1);
+  };
+
+  const handlePrev = () => {
+    setCurrentStep((prev) => prev - 1);
+  };
+
+  // FORM SUBMISSION
+  const handleSubmit = async (e) => {
+    console.log("Form Data : ", formData);
+    e.preventDefault();
+    if (!validateStep3()) return;
+
+    setLoading(true);
+    try {
+      const response = await axiosInstance.post(
+        `${BACKEND_URI}api/v1/users/${id}/user-details`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      if (response.status === 201) {
+        setIsSubmitted(true);
+        setTimeout(async () => {
+          try {
+            await refetchUserInfo();
+          } catch (error) {
+            console.log("Failed to call reFetchUserInfo() :", error);
+          }
+          navigate("/");
+        }, 3000);
+        toast.success("Form successfully submitted!");
+        navigate("/");
+      } else {
+        toast.error("Form submission failed.");
+      }
+    } catch (error) {
+      toast.error(`Error: Could not submit the form : ${error}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const isStep1Complete = () => {
+    const { firstName, lastName, phoneNo, age, gender, photo, currentAddress } =
+      formData;
+    return (
+      firstName &&
+      lastName &&
+      phoneNo.length === 10 &&
+      age >= 14 &&
+      gender &&
+      photo &&
+      currentAddress
+    );
+  };
+
+  const isStep2Complete = () => {
+    const { degree, college, passingYear, jobTitle, company, location } =
+      formData;
+    return (
+      degree &&
+      college &&
+      /^\d{4}$/.test(passingYear) &&
+      jobTitle &&
+      company &&
+      location
+    );
+  };
+
+  const isStep3Complete = () => {
+    const { homeParish, district, state, pin, churchContribution } = formData;
+    return (
+      homeParish &&
+      district &&
+      state &&
+      /^\d{6}$/.test(pin) &&
+      churchContribution
+    );
   };
 
   if (isSubmitted) {
@@ -87,103 +225,84 @@ const UserDetailsForm = () => {
     );
   }
 
-  const progressPercentage = (currentStep / totalSteps) * 100;
-
   return (
     <div className="min-h-screen flex flex-col justify-center items-center bg-gray-100">
-      <div className="w-full max-w-2xl p-6 space-y-6 bg-white rounded-lg shadow-lg sm:p-8">
+      <div className="w-full max-w-md p-8 space-y-6 bg-white rounded-lg shadow-lg">
+        <h2 className="text-center text-2xl font-bold text-gray-900">
+          Member Details Form
+        </h2>
+
         {/* Progress Bar */}
-        <div className="relative">
-          <div className="h-2 w-full bg-gray-200 rounded-full">
-            <div
-              className="h-2 bg-blue-600 rounded-full"
-              style={{ width: `${progressPercentage}%` }}
-            />
+        <div className="relative pt-1">
+          <div className="flex mb-2 items-center justify-between">
+            <div>
+              <span className="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-gray-700 bg-gray-200">
+                Step {currentStep} of 3
+              </span>
+            </div>
           </div>
-          <div className="text-right text-sm font-medium text-gray-700 mt-2">
-            Step {currentStep} of {totalSteps}
+          <div className="overflow-hidden h-2 mb-4 text-xs flex rounded bg-indigo-200">
+            <div
+              style={{ width: `${(currentStep / 3) * 100}%` }}
+              className="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-indigo-500 transition-all duration-500"
+            ></div>
           </div>
         </div>
 
-        <h2 className="text-center text-2xl font-bold text-gray-900">
-          {currentStep === 1 && "Personal Details"}
-          {currentStep === 2 && "Educational & Occupational Background"}
-          {currentStep === 3 && "Parish Information & Church Involvement"}
-        </h2>
-
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Step 1: Personal Details */}
+          {/* Step 1: Personal Information */}
           {currentStep === 1 && (
             <div className="space-y-4">
-              <div className="flex flex-col sm:flex-row gap-4">
-                <div className="sm:w-1/3">
-                  <label
-                    htmlFor="firstName"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    First Name
-                  </label>
-                  <input
-                    type="text"
-                    name="firstName"
-                    placeholder="First Name"
-                    value={formData.firstName}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    required
-                  />
-                </div>
-                <div className="sm:w-1/3">
-                  <label
-                    htmlFor="middleName"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Middle Name
-                  </label>
-                  <input
-                    type="text"
-                    name="middleName"
-                    placeholder="Middle Name"
-                    value={formData.middleName}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                  />
-                </div>
-                <div className="sm:w-1/3">
-                  <label
-                    htmlFor="lastName"
-                    className="block text-sm font-medium text-gray-700"
-                  >
-                    Last Name
-                  </label>
-                  <input
-                    type="text"
-                    name="lastName"
-                    placeholder="Last Name"
-                    value={formData.lastName}
-                    onChange={handleChange}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2">
+              <h3 className="text-center text-2xl font-semibold text-gray-700">
+                Personal Details
+              </h3>
+              <div>
                 <label
-                  htmlFor="photo"
+                  htmlFor="firstName"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Photo
+                  First Name
                 </label>
                 <input
-                  type="file"
-                  name="photo"
+                  type="text"
+                  name="firstName"
+                  value={formData.firstName}
                   onChange={handleChange}
-                  className="block w-full text-sm text-gray-500"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
               </div>
-
+              <div>
+                <label
+                  htmlFor="middleName"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Middle Name (Optional)
+                </label>
+                <input
+                  type="text"
+                  name="middleName"
+                  value={formData.middleName}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="lastName"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Last Name
+                </label>
+                <input
+                  type="text"
+                  name="lastName"
+                  value={formData.lastName}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  required
+                />
+              </div>
               <div>
                 <label
                   htmlFor="phoneNo"
@@ -192,16 +311,16 @@ const UserDetailsForm = () => {
                   Phone Number
                 </label>
                 <input
-                  type="tel"
+                  type="text"
                   name="phoneNo"
-                  placeholder="Phone Number"
                   value={formData.phoneNo}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
+                  maxLength={10}
+                  pattern="\d{10}"
                 />
               </div>
-
               <div>
                 <label
                   htmlFor="age"
@@ -212,14 +331,12 @@ const UserDetailsForm = () => {
                 <input
                   type="number"
                   name="age"
-                  placeholder="Age"
                   value={formData.age}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
               </div>
-
               <div>
                 <label
                   htmlFor="gender"
@@ -231,16 +348,31 @@ const UserDetailsForm = () => {
                   name="gender"
                   value={formData.gender}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 >
-                  <option value="">Select Gender</option>
+                  <option value="" disabled>
+                    Select Gender
+                  </option>
                   <option value="Male">Male</option>
                   <option value="Female">Female</option>
                   <option value="Other">Other</option>
                 </select>
               </div>
-
+              <div>
+                <label
+                  htmlFor="photo"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Photo
+                </label>
+                <input
+                  type="file"
+                  name="photo"
+                  onChange={handleFileChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                />
+              </div>
               <div>
                 <label
                   htmlFor="currentAddress"
@@ -251,57 +383,54 @@ const UserDetailsForm = () => {
                 <input
                   type="text"
                   name="currentAddress"
-                  placeholder="Current Address"
                   value={formData.currentAddress}
                   onChange={handleChange}
-                  className="w-full h-24 px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
               </div>
             </div>
           )}
 
-          {/* Step 2: Educational & Occupational Background */}
+          {/* Step 2: Education & Job Details */}
           {currentStep === 2 && (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900">Education</h3>
-              <div className="space-y-2">
+              <h3 className="text-center text-2xl font-semibold text-gray-700">
+                Occupational Details
+              </h3>
+              <div>
                 <label
                   htmlFor="degree"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Degree
+                  Highest Qualification (Degree)
                 </label>
                 <input
                   type="text"
                   name="degree"
-                  placeholder="Degree"
                   value={formData.degree}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
               </div>
-
-              <div className="space-y-2">
+              <div>
                 <label
                   htmlFor="college"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  College/University
+                  College / University
                 </label>
                 <input
                   type="text"
                   name="college"
-                  placeholder="College/University"
                   value={formData.college}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
               </div>
-
-              <div className="space-y-2">
+              <div>
                 <label
                   htmlFor="passingYear"
                   className="block text-sm font-medium text-gray-700"
@@ -309,20 +438,17 @@ const UserDetailsForm = () => {
                   Passing Year
                 </label>
                 <input
-                  type="number"
+                  type="text"
                   name="passingYear"
-                  placeholder="Passing Year"
                   value={formData.passingYear}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
+                  maxLength={4}
+                  pattern="\d{4}"
                 />
               </div>
-
-              <h3 className="text-lg font-semibold text-gray-900">
-                Job Details
-              </h3>
-              <div className="space-y-2">
+              <div>
                 <label
                   htmlFor="jobTitle"
                   className="block text-sm font-medium text-gray-700"
@@ -332,14 +458,13 @@ const UserDetailsForm = () => {
                 <input
                   type="text"
                   name="jobTitle"
-                  placeholder="Job Title"
                   value={formData.jobTitle}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  required
                 />
               </div>
-
-              <div className="space-y-2">
+              <div>
                 <label
                   htmlFor="company"
                   className="block text-sm font-medium text-gray-700"
@@ -349,39 +474,38 @@ const UserDetailsForm = () => {
                 <input
                   type="text"
                   name="company"
-                  placeholder="Company"
                   value={formData.company}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  required
                 />
               </div>
-
-              <div className="space-y-2">
+              <div>
                 <label
                   htmlFor="location"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Location
+                  Job Location
                 </label>
                 <input
                   type="text"
                   name="location"
-                  placeholder="Location"
                   value={formData.location}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  required
                 />
               </div>
             </div>
           )}
 
-          {/* Step 3: Parish Information & Church Involvement */}
+          {/* Step 3: Parish Info */}
           {currentStep === 3 && (
             <div className="space-y-4">
-              <h3 className="text-lg font-semibold text-gray-900">
-                Parish Information
+              <h3 className="text-center text-2xl font-semibold text-gray-700">
+                Parish Info & Church Involvement
               </h3>
-              <div className="space-y-2">
+              <div>
                 <label
                   htmlFor="homeParish"
                   className="block text-sm font-medium text-gray-700"
@@ -391,15 +515,13 @@ const UserDetailsForm = () => {
                 <input
                   type="text"
                   name="homeParish"
-                  placeholder="Home Parish"
                   value={formData.homeParish}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
               </div>
-
-              <div className="space-y-2">
+              <div>
                 <label
                   htmlFor="district"
                   className="block text-sm font-medium text-gray-700"
@@ -409,15 +531,13 @@ const UserDetailsForm = () => {
                 <input
                   type="text"
                   name="district"
-                  placeholder="District"
                   value={formData.district}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
               </div>
-
-              <div className="space-y-2">
+              <div>
                 <label
                   htmlFor="state"
                   className="block text-sm font-medium text-gray-700"
@@ -427,15 +547,13 @@ const UserDetailsForm = () => {
                 <input
                   type="text"
                   name="state"
-                  placeholder="State"
                   value={formData.state}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
                 />
               </div>
-
-              <div className="space-y-2">
+              <div>
                 <label
                   htmlFor="pin"
                   className="block text-sm font-medium text-gray-700"
@@ -445,15 +563,15 @@ const UserDetailsForm = () => {
                 <input
                   type="text"
                   name="pin"
-                  placeholder="PIN Code"
                   value={formData.pin}
                   onChange={handleChange}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
+                  maxLength={6}
+                  pattern="\d{6}"
                 />
               </div>
-
-              <div className="space-y-2">
+              <div>
                 <label
                   htmlFor="churchContribution"
                   className="block text-sm font-medium text-gray-700"
@@ -462,45 +580,56 @@ const UserDetailsForm = () => {
                 </label>
                 <textarea
                   name="churchContribution"
-                  placeholder="Church Contribution"
                   value={formData.churchContribution}
                   onChange={handleChange}
-                  className="w-full h-24 px-3 py-2 border border-gray-300 rounded-md"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  required
                 />
               </div>
             </div>
           )}
 
-          {/* Navigation Buttons */}
           <div className="flex justify-between">
             {currentStep > 1 && (
               <button
                 type="button"
-                onClick={prevStep}
-                className="px-4 py-2 font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                onClick={handlePrev}
+                className="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg"
               >
                 Previous
               </button>
             )}
-            {currentStep < totalSteps && (
+
+            {currentStep < 3 && (
               <button
                 type="button"
-                onClick={nextStep}
-                className="px-4 py-2 font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                onClick={handleNext}
+                className={`px-4 py-2 bg-indigo-500 text-white rounded-lg ${
+                  (!isStep1Complete() && currentStep === 1) ||
+                  (!isStep2Complete() && currentStep === 2)
+                    ? "opacity-50 cursor-not-allowed"
+                    : ""
+                }`}
               >
                 Next
               </button>
             )}
-            {currentStep === totalSteps && (
+
+            {currentStep === 3 && (
               <button
                 type="submit"
-                className="px-4 py-2 font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700"
+                className={`px-4 py-2 bg-indigo-500 text-white rounded-lg ${
+                  loading ? "opacity-50 cursor-not-allowed" : ""
+                }`}
+                disabled={loading}
               >
-                Submit
+                {loading ? "Submitting..." : "Submit"}
               </button>
             )}
           </div>
         </form>
+
+        <ToastContainer />
       </div>
     </div>
   );
