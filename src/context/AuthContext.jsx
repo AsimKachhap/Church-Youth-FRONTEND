@@ -9,6 +9,8 @@ export const useAuth = () => useContext(AuthContext);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false); // Track refresh status
+  const [failedRequestsQueue, setFailedRequestsQueue] = useState([]); // Queue for failed requests
   const navigate = useNavigate();
 
   // Load User on initial render
@@ -18,14 +20,73 @@ export const AuthProvider = ({ children }) => {
     })();
   }, []);
 
+  // Axios Interceptors
+  useEffect(() => {
+    const responseInterceptor = axiosInstance.interceptors.response.use(
+      (response) => {
+        return response;
+      },
+      async (error) => {
+        const originalRequest = error.config; // Store the original request configuration
+
+        if (
+          error.response &&
+          error.response.status === 401 &&
+          !originalRequest._retry
+        ) {
+          if (isRefreshing) {
+            // If a token refresh is already happening, queue the requests
+            return new Promise((resolve, reject) => {
+              failedRequestsQueue.push({ resolve, reject });
+            })
+              .then(() => {
+                return axiosInstance(originalRequest); // Retry the original request without re-adding withCredentials
+              })
+              .catch((err) => {
+                return Promise.reject(err);
+              });
+          }
+
+          originalRequest._retry = true; // Mark the original request as retried
+          setIsRefreshing(true); // Set token refreshing flag
+
+          try {
+            await refreshAccessToken(); // Call your refresh token logic
+
+            // Retry any requests that failed during the refresh process
+            failedRequestsQueue.forEach((prom) => {
+              prom.resolve();
+            });
+            setFailedRequestsQueue([]); // Clear the queue
+
+            // Retry the original request
+            return axiosInstance(originalRequest); // Retry the request directly
+          } catch (err) {
+            failedRequestsQueue.forEach((prom) => prom.reject(err)); // Reject queued requests if refresh fails
+            setFailedRequestsQueue([]);
+            logout(); // Logout if refresh fails
+            return Promise.reject(err);
+          } finally {
+            setIsRefreshing(false); // Reset refreshing state
+          }
+        }
+
+        return Promise.reject(error); // Reject any other error
+      }
+    );
+
+    // Clean up the interceptor when the component unmounts
+    return () => {
+      axiosInstance.interceptors.response.eject(responseInterceptor);
+    };
+  }, [isRefreshing, failedRequestsQueue]);
+
   // Refresh Access Token
   const refreshAccessToken = async () => {
-    console.log("refreshAccessToken is called");
     try {
       const response = await axiosInstance.get(
         "api/v1/auth/refresh-access-token"
       );
-
       console.log("Access token refreshed: ", response);
     } catch (error) {
       console.error("Failed to refresh access token", error);

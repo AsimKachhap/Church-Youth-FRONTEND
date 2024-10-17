@@ -2,10 +2,11 @@ import { useState } from "react";
 import { ToastContainer, toast } from "react-toastify";
 import axiosInstance from "../lib/axios";
 import { useNavigate, useParams } from "react-router-dom";
-import { refetchUserInfo } from "../context/AuthContext";
+import { useAuth } from "../context/AuthContext";
 import "react-toastify/dist/ReactToastify.css";
 
 const UserDetailsForm = () => {
+  const { refetchUserInfo } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -157,7 +158,7 @@ const UserDetailsForm = () => {
           try {
             await refetchUserInfo();
           } catch (error) {
-            console.log("Failed to call reFetchUserInfo() :", error);
+            console.log("Failed to call refetchUserInfo() :", error);
           }
           navigate("/");
         }, 3000);
