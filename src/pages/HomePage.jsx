@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 const HomePage = () => {
   const { user, logout } = useAuth();
@@ -75,6 +75,9 @@ const HomePage = () => {
             <li className="hover:bg-gray-300 p-2 rounded">Dashboard</li>
             <li className="hover:bg-gray-300 p-2 rounded">Profile</li>
             <li className="hover:bg-gray-300 p-2 rounded">Settings</li>
+            <li className="hover:bg-gray-300 p-2 rounded">
+              <Link to="/my-form">My Form</Link>
+            </li>
           </ul>
         </aside>
 

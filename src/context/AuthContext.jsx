@@ -116,16 +116,14 @@ export const AuthProvider = ({ children }) => {
   //Fetching User Info
   const fetchUserInfo = async () => {
     try {
-      const response = await axiosInstance.get("api/v1/users/me", {
-        withCredentials: true,
-      });
+      const response = await axiosInstance.get("api/v1/users/me");
       console.log(
         "Response.data.data of fetchUserInfo() : ",
         response.data.data
       );
 
-      console.log("Current user state : ", user);
       setUser(response.data.data);
+      console.log("Current user state : ", user);
     } catch (error) {
       console.error("Failed to fetch user info", error);
       if (error.response && error.response.status === 401) {

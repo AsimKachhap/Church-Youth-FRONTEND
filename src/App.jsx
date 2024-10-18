@@ -1,4 +1,4 @@
-import { HashRouter as Router, Routes, Route } from "react-router-dom";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Logout from "./pages/Logout";
@@ -6,6 +6,7 @@ import HomePage from "./pages/HomePage";
 import Dashboard from "./pages/Dashboard";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import UserDetailsForm from "./pages/UserDetailsForm";
+import MyForm from "./pages/MyForm";
 
 const PrivateRoute = ({ children }) => {
   const { user } = useAuth();
@@ -21,6 +22,7 @@ const App = () => {
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/user-details/:id" element={<UserDetailsForm />} />
+          <Route path="/my-form" element={<MyForm />} />
           <Route path="/logout" element={<Logout />} />
           {/* Private route: only accessible if logged in */}
           <Route
