@@ -131,8 +131,7 @@ export const AuthProvider = ({ children }) => {
       }
     }
   };
-
-  // Add a function in your AuthContext to refetch user info
+  // Refetch UserInfo
   const refetchUserInfo = async () => {
     try {
       const response = await axiosInstance.get("api/v1/users/me", {

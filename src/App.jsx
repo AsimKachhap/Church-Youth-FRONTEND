@@ -18,12 +18,18 @@ const App = () => {
     <Router>
       <AuthProvider>
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route
+            path="/"
+            element={
+              <PrivateRoute>
+                <HomePage />
+              </PrivateRoute>
+            }
+          />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
           <Route path="/user-details/:id" element={<UserDetailsForm />} />
           <Route path="/my-form" element={<DownloadMemberShipForm />} />
-          <Route path="/logout" element={<Logout />} />
           {/* Private route: only accessible if logged in */}
           <Route
             path="/dashboard"
