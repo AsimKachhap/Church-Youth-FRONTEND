@@ -42,8 +42,17 @@ const Register = () => {
       );
 
       if (response.status === 201) {
-        await login(email, password);
-        navigate("/"); // Redirect to home page after registration
+        try {
+          console.log("Attempting to loin after Registration");
+          await login(email, password);
+
+          console.log("Login Success. Redirecting to Home Page after Success");
+          navigate("/");
+        } catch (error) {
+          console.error("Login failed:", error.message);
+          setError("Login failed. Please try logging in manually.");
+          navigate("/login"); // Redirect to login page if automatic login fails
+        }
       }
     } catch (error) {
       console.error("Registration failed:", error.message);

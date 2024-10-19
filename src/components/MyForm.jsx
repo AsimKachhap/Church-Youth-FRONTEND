@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     marginBottom: 5, // Increased space after each signature
   },
   sealSpace: {
-    height: 60,
+    height: 50,
     borderBottom: "1px dashed #000",
   },
 });
@@ -155,7 +155,14 @@ const MyForm = ({ userDetails }) => {
                   </Text>
                 </Text>
                 <Text style={styles.label}>
-                  Aadhaar No: <Text style={styles.value}>12345678912234</Text>
+                  Father's Name:{" "}
+                  <Text style={[styles.value, styles.boldName]}>
+                    {userDetails?.fatherName}
+                  </Text>
+                </Text>
+                <Text style={styles.label}>
+                  Aadhaar No:{" "}
+                  <Text style={styles.value}>{userDetails?.aadhaarNo}</Text>
                 </Text>
                 <Text style={styles.label}>
                   Phone Number:{" "}

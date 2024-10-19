@@ -10,7 +10,6 @@ const DownloadUserForm = ({ userDetails }) => {
 
   return (
     <div>
-      <h2>Download User Application Form</h2>
       <PDFDownloadLink
         document={<MyForm userDetails={userDetails} />}
         fileName={`${fullName}.pdf`}
