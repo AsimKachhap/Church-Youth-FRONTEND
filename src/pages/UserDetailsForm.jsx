@@ -635,7 +635,7 @@ const UserDetailsForm = () => {
                   htmlFor="churchContribution"
                   className="block text-sm font-medium text-gray-700"
                 >
-                  Church Contribution
+                  How I would Contribute to Church?
                 </label>
                 <textarea
                   name="churchContribution"
@@ -643,6 +643,7 @@ const UserDetailsForm = () => {
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
+                  placeholder="Church me kya krna chahoge. 1 line me bta do."
                 />
               </div>
             </div>
