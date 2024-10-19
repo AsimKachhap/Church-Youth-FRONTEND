@@ -74,9 +74,7 @@ const HomePage = () => {
             <li className="hover:bg-gray-300 p-2 rounded">Dashboard</li>
             <li className="hover:bg-gray-300 p-2 rounded">Profile</li>
             <li className="hover:bg-gray-300 p-2 rounded">Settings</li>
-            <li className="hover:bg-gray-300 p-2 rounded">
-              <Link to="/my-form">My Form</Link>
-            </li>
+            <li className="hover:bg-gray-300 p-2 rounded"></li>
           </ul>
         </aside>
 
@@ -86,7 +84,14 @@ const HomePage = () => {
             Welcome, {user?.username || "Guest"}!
           </h1>
           <div className="p-4 bg-gray-100 rounded shadow-md">
-            <p>Main content goes here.</p>
+            {/* Main Content Area */}
+
+            <button
+              onClick={() => navigate("/my-form")} // Navigate to my-form Page
+              className="mt-4 py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-green-600 hover:bg-green-700"
+            >
+              Download Membership Form
+            </button>
           </div>
         </main>
 

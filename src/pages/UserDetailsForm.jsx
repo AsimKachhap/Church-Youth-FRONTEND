@@ -14,6 +14,7 @@ const UserDetailsForm = () => {
     firstName: "",
     middleName: "",
     lastName: "",
+    fatherName: "",
     aadhaarNo: "",
     phoneNo: "",
     age: "",
@@ -58,12 +59,22 @@ const UserDetailsForm = () => {
   };
 
   const validateStep1 = () => {
-    const { firstName, lastName, phoneNo, age, gender, photo, currentAddress } =
-      formData;
+    const {
+      firstName,
+      lastName,
+      fatherName,
+      aadhaarNo,
+      phoneNo,
+      age,
+      gender,
+      photo,
+      currentAddress,
+    } = formData;
 
     if (
       !firstName ||
       !lastName ||
+      !fatherName ||
       !aadhaarNo ||
       !phoneNo ||
       !age ||
@@ -180,6 +191,7 @@ const UserDetailsForm = () => {
     const {
       firstName,
       lastName,
+      fatherName,
       aadhaarNo,
       phoneNo,
       age,
@@ -190,7 +202,8 @@ const UserDetailsForm = () => {
     return (
       firstName &&
       lastName &&
-      aadhaarNo.lenth === 12 &&
+      fatherName &&
+      aadhaarNo.length === 12 &&
       phoneNo.length === 10 &&
       age >= 14 &&
       gender &&
@@ -317,6 +330,22 @@ const UserDetailsForm = () => {
               </div>
               <div>
                 <label
+                  htmlFor="fatherName"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Father's Name
+                </label>
+                <input
+                  type="text"
+                  name="fatherName"
+                  value={formData.fatherName}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  required
+                />
+              </div>
+              <div>
+                <label
                   htmlFor="aadhaarNo"
                   className="block text-sm font-medium text-gray-700"
                 >
@@ -324,7 +353,7 @@ const UserDetailsForm = () => {
                 </label>
                 <input
                   type="text"
-                  name="phoneNo"
+                  name="aadhaarNo"
                   value={formData.aadhaarNo}
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
