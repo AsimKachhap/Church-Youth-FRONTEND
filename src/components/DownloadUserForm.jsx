@@ -1,14 +1,19 @@
 import React from "react";
 import { PDFDownloadLink } from "@react-pdf/renderer";
-import MyForm from "./MyForm"; // Import the PDF document
+import MyForm from "./MyForm";
 
 const DownloadUserForm = ({ userDetails }) => {
+  console.log("UserDetails before passing to PDFDownloadLink :", userDetails);
+  const fullName = `${userDetails?.firstName || ""} ${
+    userDetails?.middleName ? userDetails.middleName + " " : ""
+  }${userDetails?.lastName || ""}`;
+
   return (
     <div>
       <h2>Download User Application Form</h2>
       <PDFDownloadLink
         document={<MyForm userDetails={userDetails} />}
-        fileName="user-details.pdf"
+        fileName={`${fullName}.pdf`}
       >
         {({ loading }) => (loading ? "Loading document..." : "Download PDF")}
       </PDFDownloadLink>
