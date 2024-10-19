@@ -17,7 +17,6 @@ const HomePage = () => {
     } else if (!user.isDetailsComplete) {
       console.log(user);
       console.log("isComplete :", user?.isDetailsComplete);
-      navigate("/login");
       // Show modal if user details are incomplete
       setShowModal(true);
     }
