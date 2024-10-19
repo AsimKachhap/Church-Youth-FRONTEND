@@ -14,6 +14,7 @@ const UserDetailsForm = () => {
     firstName: "",
     middleName: "",
     lastName: "",
+    aadhaarNo: "",
     phoneNo: "",
     age: "",
     gender: "",
@@ -63,6 +64,7 @@ const UserDetailsForm = () => {
     if (
       !firstName ||
       !lastName ||
+      !aadhaarNo ||
       !phoneNo ||
       !age ||
       !gender ||
@@ -175,11 +177,20 @@ const UserDetailsForm = () => {
   };
 
   const isStep1Complete = () => {
-    const { firstName, lastName, phoneNo, age, gender, photo, currentAddress } =
-      formData;
+    const {
+      firstName,
+      lastName,
+      aadhaarNo,
+      phoneNo,
+      age,
+      gender,
+      photo,
+      currentAddress,
+    } = formData;
     return (
       firstName &&
       lastName &&
+      aadhaarNo.lenth === 12 &&
       phoneNo.length === 10 &&
       age >= 14 &&
       gender &&
@@ -302,6 +313,24 @@ const UserDetailsForm = () => {
                   onChange={handleChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
                   required
+                />
+              </div>
+              <div>
+                <label
+                  htmlFor="aadhaarNo"
+                  className="block text-sm font-medium text-gray-700"
+                >
+                  Aadhaar No.
+                </label>
+                <input
+                  type="text"
+                  name="phoneNo"
+                  value={formData.aadhaarNo}
+                  onChange={handleChange}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  required
+                  maxLength={12}
+                  pattern="\d{12}"
                 />
               </div>
               <div>
